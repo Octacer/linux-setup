@@ -486,27 +486,25 @@ create_database() {
     local db_name=$1
     local pg_user=$(get_config "postgres" "user")
     local pg_password=$(get_config "postgres" "password")
-    
-    if [[ -z "$pg_user" || -z "$pg_password" ]]; then
+    local pg_database=$(get_config "postgres" "database")  # Get the main database
+
+    if [[ -z "$pg_user" || -z "$pg_password" || -z "$pg_database" ]]; then
         print_error "PostgreSQL configuration not found. Please install PostgreSQL first."
         exit 1
     fi
-    
+
     print_status "Creating database: $db_name"
-    
-    # Check if database already exists
-    local db_exists=$(PGPASSWORD="$pg_password" docker exec postgres psql -U "$pg_user" -lqt | cut -d \| -f 1 | grep -qw "$db_name" && echo "yes" || echo "no")
-    
-    if [[ "$db_exists" == "yes" ]]; then
-        print_warning "Database '$db_name' already exists."
+    print_status "Connecting to PostgreSQL as user '$pg_user' on database '$pg_database'"
+
+    # Connect to the main database first, then create the new database
+    PGPASSWORD="$pg_password" docker exec postgres psql -U "$pg_user" -d "$pg_database" -c "CREATE DATABASE $db_name;" 2>/dev/null
+
+    if [[ $? -eq 0 ]]; then
+        print_success "Database '$db_name' created successfully."
     else
-        PGPASSWORD="$pg_password" docker exec postgres psql -U "$pg_user" -c "CREATE DATABASE $db_name;" 2>/dev/null
-        if [[ $? -eq 0 ]]; then
-            print_success "Database '$db_name' created successfully."
-        else
-            print_error "Failed to create database '$db_name'."
-            exit 1
-        fi
+        print_error "Failed to create database '$db_name'."
+        echo "Trying to see the detailed error:"
+        PGPASSWORD="$pg_password" docker exec postgres psql -U "$pg_user" -d "$pg_database" -c "CREATE DATABASE $db_name;"
     fi
 }
 
