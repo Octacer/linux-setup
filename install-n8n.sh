@@ -257,7 +257,10 @@ restart_n8n() {
     print_status "Restarting $SERVICE_NAME..."
     stop_n8n
     sleep 2
-    install_n8n
+    
+    # Start the service
+    print_status "Restarting $SERVICE_NAME container..."
+    docker compose -f "$COMPOSE_FILE" -p "$PROJECT_NAME" up -d
 }
 
 # Function to show help
