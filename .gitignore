@@ -1,0 +1,32 @@
+# Generated service config
+services-config.json
+
+# Generated Docker Compose files
+*.yml
+
+# Service data directories
+postgres_data/
+.n8n_data/
+.redis_data/
+directus/
+.sessions/
+backups/
+
+# Backup directories with timestamps
+*_backup_*/
+
+# IDE and editor folders
+.idea/
+.vscode/
+
+# Editor swap and temporary files
+*~
+*.swp
+*.swo
+*.sw?
+
+# System files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+desktop.ini
