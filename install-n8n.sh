@@ -119,20 +119,7 @@ services:
       - ./.n8n_data/data:/home/node/.n8n
       - ./.n8n_data/custom-templates:/custom-templates
       - /var/run/docker.sock:/var/run/docker.sock
-    depends_on:
-      - redis
     restart: always
-    network_mode: host
-
-  redis:
-    image: redis
-    container_name: redis
-    command: redis-server --maxmemory 1gb --maxmemory-policy allkeys-lru
-    restart: always
-    ports:
-      - "6379:6379"
-    volumes:
-      - ./.redis_data:/data
 EOF
     
     print_status "Docker Compose file generated successfully"
