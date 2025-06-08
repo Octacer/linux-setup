@@ -83,3 +83,15 @@ After running an installer the relevant section is populated with your chosen va
 3. Inspect the saved configuration with `cat services-config.json`.
 
 These scripts can be executed independently whenever you need to configure or restart a service.
+
+## Contributing
+
+- Clone the repo and make the scripts executable.
+- Review scripts before running and test on a safe server with `sudo`.
+- Follow the Bash style in [CONTRIBUTING.md](CONTRIBUTING.md) and enable `set -euo pipefail`.
+- Lint updated scripts with [`shellcheck`](https://www.shellcheck.net/) and fix warnings.
+- Fork, create a branch and open a pull request with your changes.
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
