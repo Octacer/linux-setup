@@ -625,67 +625,69 @@ cleanup_docker() {
     print_success "Docker cleanup completed."
 }
 
-# Function to export functions for use in other scripts
-export_functions() {
-    # Export all functions for use in other scripts
-    export -f print_status print_warning print_error print_header print_question print_config print_confirm print_success
-    export -f check_root is_interactive init_config get_config update_config check_prerequisites
-    export -f prompt_input confirm_config create_directory is_service_running wait_for_service
-    export -f configure_domain show_service_status validate_required validate_domain validate_email validate_port
-    export -f check_postgres_available create_database check_port_available get_container_logs restart_container
-    export -f backup_service_data check_system_resources cleanup_docker
-}
-
-# Export all functions when script is sourced
-export_functions]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$ ]]; then
-        print_error "Invalid domain format: $domain"
-        return 1
-    fi
-    return 0
-}
-
-# Function to check if PostgreSQL is available
-check_postgres_available() {
-    if ! is_service_running "postgres"; then
-        print_warning "PostgreSQL is not running."
-        print_status "Would you like to install PostgreSQL first?"
-        read -p "Install PostgreSQL? (y/N): " -n 1 -r
-        echo
-        if [[ $REPLY =~ ^[Yy]$ ]]; then
-            if [[ -f "./install-postgres.sh" ]]; then
-                print_status "Running PostgreSQL installation..."
-                sudo ./install-postgres.sh
-            else
-                print_error "PostgreSQL installation script not found."
-                exit 1
-            fi
-        else
-            print_error "PostgreSQL is required for this service."
-            exit 1
-        fi
-    fi
-}
-
-# Function to create database
-create_database() {
-    local db_name=$1
-    local pg_user=$(get_config "postgres" "user")
-    local pg_password=$(get_config "postgres" "password")
-    
-    if [[ -z "$pg_user" || -z "$pg_password" ]]; then
-        print_error "PostgreSQL configuration not found. Please install PostgreSQL first."
-        exit 1
-    fi
-    
-    print_status "Creating database: $db_name"
-    PGPASSWORD="$pg_password" docker exec postgres psql -U "$pg_user" -c "CREATE DATABASE $db_name;" 2>/dev/null || {
-        print_warning "Database '$db_name' might already exist or there was an error creating it."
-    }
+# Function to show help for common functions
+show_common_help() {
+    echo "Common Functions Library"
+    echo "This file provides shared functions for all service installation scripts."
+    echo ""
+    echo "Available Functions:"
+    echo "  Output Functions:"
+    echo "    print_status, print_warning, print_error, print_header"
+    echo "    print_question, print_config, print_confirm, print_success"
+    echo ""
+    echo "  System Functions:"
+    echo "    check_root, is_interactive, check_prerequisites"
+    echo "    check_system_resources, cleanup_docker"
+    echo ""
+    echo "  Configuration Functions:"
+    echo "    init_config, get_config, update_config"
+    echo "    prompt_input, confirm_config"
+    echo ""
+    echo "  Validation Functions:"
+    echo "    validate_required, validate_domain, validate_email, validate_port"
+    echo ""
+    echo "  Service Management Functions:"
+    echo "    is_service_running, wait_for_service, show_service_status"
+    echo "    restart_container, get_container_logs"
+    echo ""
+    echo "  Database Functions:"
+    echo "    check_postgres_available, create_database"
+    echo ""
+    echo "  Utility Functions:"
+    echo "    create_directory, configure_domain, backup_service_data"
+    echo "    check_port_available"
+    echo ""
+    echo "Usage: source ./common-functions.sh"
 }
 
 # Export functions for use in other scripts
-export -f print_status print_warning print_error print_header print_question print_config print_confirm
-export -f check_root init_config get_config update_config check_prerequisites
+export -f print_status print_warning print_error print_header print_question print_config print_confirm print_success
+export -f check_root is_interactive init_config get_config update_config check_prerequisites
 export -f prompt_input confirm_config create_directory is_service_running wait_for_service
-export -f configure_domain show_service_status validate_required validate_domain
-export -f check_postgres_available create_database
+export -f configure_domain show_service_status validate_required validate_domain validate_email validate_port
+export -f check_postgres_available create_database check_port_available get_container_logs restart_container
+export -f backup_service_data check_system_resources cleanup_docker show_common_help
+
+# Main execution (if script is run directly instead of sourced)
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    case "${1:-help}" in
+        "help"|"-h"|"--help")
+            show_common_help
+            ;;
+        "test")
+            print_status "Testing common functions..."
+            check_prerequisites
+            print_success "Common functions are working correctly!"
+            ;;
+        "init")
+            print_status "Initializing configuration..."
+            init_config
+            print_success "Configuration file created: $CONFIG_FILE"
+            ;;
+        *)
+            echo "Common Functions Library"
+            echo "Usage: $0 [help|test|init]"
+            echo "Or: source $0 (to load functions in another script)"
+            ;;
+    esac
+fi
